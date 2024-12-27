@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Excel Dropdown</title>
+  <script src="https://cdn.sheetjs.com/xlsx-0.18.5/package/dist/xlsx.full.min.js"></script>
+  <style>
+    #contentBox {
+      width: 100%;
+      height: 150px;
+    }
+  </style>
+</head>
+<body>
+  <h2>اختار من القائمة المنسدلة</h2>
+  <select id="dropdown" onchange="updateContent()">
+    <option value="">اختر خيارًا</option>
+  </select>
+  <br><br>
+  <textarea id="contentBox" readonly></textarea>
+
+  <script>
+    let contentMap = {};
+
+    // Load Excel file automatically
+    async function loadExcelFile() {
+      try {
+        // Fetch the file from the same directory
+        const response = await fetch('canned.xlsx');
+        if (!response.ok) throw new Error('Failed to fetch Excel file');
+
+        const arrayBuffer = await response.arrayBuffer();
+        const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
+
+        // Assuming the first sheet
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+
+        // Convert sheet to JSON
+        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+        // Populate dropdown and content map
+        const dropdown = document.getElementById('dropdown');
+        contentMap = {};
+
+        rows.forEach((row, index) => {
+          if (index === 0 || row.length < 2) return; // Skip header or incomplete rows
+          const [option, content] = row;
+
+          if (option && content) {
+            contentMap[option] = content;
+
+            const optionElement = document.createElement('option');
+            optionElement.value = option;
+            optionElement.textContent = option;
+            dropdown.appendChild(optionElement);
+          }
+        });
+      } catch (error) {
+        console.error('Error loading Excel file:', error);
+      }
+    }
+
+    // Update content box based on dropdown selection
+    function updateContent() {
+      const dropdown = document.getElementById('dropdown');
+      const selectedOption = dropdown.value;
+
+      document.getElementById('contentBox').value = selectedOption
+        ? contentMap[selectedOption]
+        : '';
+    }
+
+    // Automatically load the Excel file on page load
+    window.onload = loadExcelFile;
+  </script>
+</body>
+</html>
