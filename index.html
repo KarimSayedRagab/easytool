@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Excel Dropdown</title>
-  <script src="https://cdn.sheetjs.com/xlsx-0.18.5/package/dist/xlsx.full.min.js"></script>
+  <title>JSON Dropdown</title>
   <style>
     #contentBox {
       width: 100%;
@@ -23,30 +22,16 @@
   <script>
     let contentMap = {};
 
-    // Load Excel file automatically
-    async function loadExcelFile() {
+    async function loadJSONFile() {
       try {
-        // Fetch the file from the same directory
-        const response = await fetch('canned.xlsx');
-        if (!response.ok) throw new Error('Failed to fetch Excel file');
+        const response = await fetch('canned.json');
+        if (!response.ok) throw new Error('Failed to fetch JSON file');
 
-        const arrayBuffer = await response.arrayBuffer();
-        const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
+        const data = await response.json();
 
-        // Assuming the first sheet
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-
-        // Convert sheet to JSON
-        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
-        // Populate dropdown and content map
         const dropdown = document.getElementById('dropdown');
-        contentMap = {};
-
-        rows.forEach((row, index) => {
-          if (index === 0 || row.length < 2) return; // Skip header or incomplete rows
-          const [option, content] = row;
+        data.forEach((row) => {
+          const { option, content } = row;
 
           if (option && content) {
             contentMap[option] = content;
@@ -58,11 +43,10 @@
           }
         });
       } catch (error) {
-        console.error('Error loading Excel file:', error);
+        console.error('Error loading JSON file:', error);
       }
     }
 
-    // Update content box based on dropdown selection
     function updateContent() {
       const dropdown = document.getElementById('dropdown');
       const selectedOption = dropdown.value;
@@ -72,8 +56,7 @@
         : '';
     }
 
-    // Automatically load the Excel file on page load
-    window.onload = loadExcelFile;
+    window.onload = loadJSONFile;
   </script>
 </body>
 </html>
